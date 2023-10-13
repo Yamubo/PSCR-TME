@@ -4,12 +4,14 @@
 #include <chrono>
 #include <vector>
 #include <cstring>
+#include "HashMap"
 
 using namespace std;
 
 int main () {
 	using namespace std;
 	using namespace std::chrono;
+	using namespace pr ;
 
 	ifstream input = ifstream("WarAndPeace.txt");
 

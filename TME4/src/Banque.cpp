@@ -1,5 +1,6 @@
 #include "Banque.h"
-
+//ajouter un mutex : peut provoquer interlockage
+//solution possible : recursive mutex 
 #include <iostream>
 
 using namespace std;
