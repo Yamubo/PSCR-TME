@@ -2,7 +2,8 @@
 #define SRC_QUEUE_H_
 
 #include <cstdlib>
-#include <mutex>
+#include <recursive_mutex>
+#include <condition_variable>
 
 namespace pr {
 
@@ -13,13 +14,17 @@ class Queue {
 	const size_t allocsize;
 	size_t begin;
 	size_t sz;
-	mutable std::mutex m;
+	mutable std::recursive_mutex m;
+	std::condition_variable_any cv;
+	bool isBlocking;
 
 	// fonctions private, sans protection mutex
 	bool empty() const {
+		std::unique_lock<std::recursive_mutex> lg(m);
 		return sz == 0;
 	}
 	bool full() const {
+		std::unique_lock<std::recursive_mutex> lg(m);
 		return sz == allocsize;
 	}
 public:
@@ -28,29 +33,45 @@ public:
 		memset(tab, 0, size * sizeof(T*));
 	}
 	size_t size() const {
-		std::unique_lock<std::mutex> lg(m);
+		std::unique_lock<std::recursive_mutex> lg(m);
 		return sz;
 	}
 	T* pop() {
-		std::unique_lock<std::mutex> lg(m);
-		if (empty()) {
+		std::unique_lock<std::recursive_mutex> lg(m);
+		while (empty() && isBlocking) {
+			cv.wait(lg);
+		}
+
+		if(! isBlocking && empty()){
 			return nullptr;
 		}
 		auto ret = tab[begin];
 		tab[begin] = nullptr;
 		sz--;
 		begin = (begin + 1) % allocsize;
+		cv.notify_one();
 		return ret;
 	}
 	bool push(T* elt) {
-		std::unique_lock<std::mutex> lg(m);
-		if (full()) {
+		std::unique_lock<std::recursive_mutex> lg(m);
+		while (full() && isBlocking ) {
+			cv.wait(lg);
+		}
+		if(! isBlocking && full()){
 			return false;
 		}
 		tab[(begin + sz) % allocsize] = elt;
 		sz++;
+		cv.notify_one();
 		return true;
 	}
+
+	void setBlocking(bool b){
+		unique_lock<std::recursive_mutex> lg(m);
+		isBlocking = b;
+		cv.notify_all();
+	}
+
 	~Queue() {
 		// ?? lock a priori inutile, ne pas detruire si on travaille encore avec
 		for (size_t i = 0; i < sz; i++) {

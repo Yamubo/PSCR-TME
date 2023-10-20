@@ -10,7 +10,6 @@
 using namespace std;
 using namespace pr;
 
-
 void fillScene(Scene & scene, default_random_engine & re) {
 	// Nombre de spheres (rend le probleme plus dur)
 	const int NBSPHERES = 250;
@@ -112,7 +111,7 @@ int main () {
 	fillScene(scene, re);
 	
 	// lumieres 
-	vector<Vec3D> lights;
+	svector<Vec3D> light;
 	lights.reserve(3);
 	lights.emplace_back(Vec3D(50, 50, -50));
 	lights.emplace_back(Vec3D(50, 50, 120));
@@ -125,6 +124,7 @@ int main () {
 	// Les couleurs des pixels dans l'image finale
 	Color * pixels = new Color[scene.getWidth() * scene.getHeight()];
 
+	//pool submit (new drawjob(x , y , pixel, scene))
 	// pour chaque pixel, calculer sa couleur
 	for (int x =0 ; x < scene.getWidth() ; x++) {
 		for (int  y = 0 ; y < scene.getHeight() ; y++) {
@@ -132,7 +132,7 @@ int main () {
 			auto & screenPoint = screen[y][x];
 			// le rayon a inspecter
 			Rayon  ray(scene.getCameraPos(), screenPoint);
-
+			
 			int targetSphere = findClosestInter(scene, ray);
 
 			if (targetSphere == -1) {
