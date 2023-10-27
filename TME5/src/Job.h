@@ -42,10 +42,10 @@ class DrawJob : public Job {
 	Color * pixels ; 
 	Scene * scene ;
 	svector<Vec3D> * lights ;
-	const Scene::screen_t & screen ;
+	const Scene::screen_t * screen ;
 
 public :
-	DrawJob( int * x , int * y , Color * pixel , Scene * scene , svector<Vec3D> light , const Scene::screen_t & screen  ): x(x) , y(y) , pixels(pixel) , scene(scene) , lights(light) ,screen(screen) {} 
+	DrawJob( int * x , int * y , Color * pixel , Scene * scene , svector<Vec3D> light , const Scene::screen_t * screen  ): x(x) , y(y) , pixels(pixel) , scene(scene) , lights(light) ,screen(screen) {} 
 	void run() {
 			// le point de l'ecran par lequel passe ce rayon
 			auto & screenPoint = screen[y][x];
